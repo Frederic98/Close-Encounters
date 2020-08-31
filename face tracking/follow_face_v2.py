@@ -4,6 +4,12 @@ import cv2
 import eyes
 import threading
 
+### Install
+# OpenCV: pip install opencv-python
+# face_recognition: https://github.com/ageitgey/face_recognition
+# PyQt5: pip install PyQt5
+# NumPy: pip install numpy
+
 
 video_capture = cv2.VideoCapture(0)
 shrink_factor = 2
