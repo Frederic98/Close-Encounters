@@ -76,7 +76,7 @@ def detect_face():
             yc = face.top + face.height/2       # Y center of face
             xn = (xc - fw/2) / (fw/2)           # Normalised face location in frame
             yn = (yc - fh/2) / (fh/2)           # [-1 ... 1]
-            eye.watchDirection(xn, yn)
+            eye.set_watch_direction(xn, yn)
 
             face_image = frame[face.top:face.bottom, face.left:face.right, :].copy()
             cv2.imwrite('tmp/{}.png'.format(i), face_image)

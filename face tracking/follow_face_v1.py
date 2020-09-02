@@ -46,7 +46,7 @@ def detect_face():
             xn = (xc - fw/2) / (fw/2)
             yn = (yc - fh/2) / (fh/2)
             print(xn, yn)
-            eye.watchDirection(xn, yn)
+            eye.set_watch_direction(xn, yn)
         else:
             print('No face!')
 
