@@ -41,6 +41,13 @@ class Eyes(QWidget):
         else:
             super().keyPressEvent(event)
 
+    @staticmethod
+    def getApplication(args=None):
+        app = QApplication.instance()
+        if app is None:
+            app = QApplication(args if args is not None else [])
+        return app
+
 
 class Eye(QWidget):
     def __init__(self, *args, **kwargs):
@@ -193,7 +200,7 @@ class DisplayImageWidget(QWidget):
 
 
 if __name__ == "__main__":
-    app = QApplication([])
+    app = Eyes.getApplication()
 
     def move_pupil():
         while True:
