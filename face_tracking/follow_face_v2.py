@@ -54,6 +54,7 @@ def detect_face():
     face_names = []
 
     i = 0
+    no_face_count = 0
     while True:
         i += 1
         # Grab a single frame of video
@@ -67,6 +68,7 @@ def detect_face():
         face_locations = [FaceLocation(loc) for loc in face_recognition.face_locations(small_frame)]
 
         if len(face_locations) > 0:
+            no_face_count = 0
             # print('Face!')
             face = FaceLocation.sort(face_locations)[0]
             face *= shrink_factor
@@ -76,7 +78,8 @@ def detect_face():
             yc = face.top + face.height/2       # Y center of face
             xn = (xc - fw/2) / (fw/2)           # Normalised face location in frame
             yn = (yc - fh/2) / (fh/2)           # [-1 ... 1]
-            eye.set_watch_direction(xn, yn)
+            eye.watchDirection(xn, yn)
+            eye.change_pupil_size(0.7)
 
             face_image = frame[face.top:face.bottom, face.left:face.right, :].copy()
             cv2.imwrite('tmp/{}.png'.format(i), face_image)
@@ -102,10 +105,13 @@ def detect_face():
                     cv2.putText(frame, 'face ' + name, (face.left + 6, face.bottom - 6 + 35), font, 1.0, (255, 255, 255), 1)
                 except IndexError:
                     pass
-
         else:
+            no_face_count += 1
             # print('No face!')
-            pass
+            if no_face_count >= 5:
+                eye.watchDirection(0,0)
+                eye.change_pupil_size(0.5)
+
         video.show_image(frame)
 
     video_capture.release()
