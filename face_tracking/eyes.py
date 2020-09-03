@@ -48,6 +48,7 @@ class Eye(QWidget):
 
         self.iris_size = 0.4
         self.watch_direction = (0.0, 0.0)
+        self._wh_ratio = 5
 
         self.iris = Iris(QColor(0x00aa00), parent=self)
         self.iris_move_anim = QPropertyAnimation(self.iris, b'pos')         # Animation for iris position
@@ -56,8 +57,16 @@ class Eye(QWidget):
         self.iris_size_anim.setDuration(500)
         self.resize_iris()
 
+    @pyqtProperty(float)
+    def whRatio(self):
+        return self._wh_ratio
+
+    @whRatio.setter
+    def whRatio(self, ratio: float):
+        self._wh_ratio = ratio
+
     def resize_iris(self):
-        pupil_size = int(min(self.width(), self.height()) * self.iris_size)
+        pupil_size = int(min(self.body_width, self.body_height) * self.iris_size)
         self.iris.setFixedSize(pupil_size, pupil_size)
         self.set_watch_direction(*self.watch_direction, animate=False)
 
@@ -72,12 +81,11 @@ class Eye(QWidget):
 
         # draw border around eye
         painter.setBrush(QBrush(self.border_color))
-        painter.drawEllipse(QPointF(0, 0), size/2, size/2)
+        painter.drawEllipse(QPointF(0, 0), self.eye_width/2, self.eye_height/2)
 
         # draw sclera (white part of eyes)
         painter.setBrush(QBrush(self.body_color))
-        body_size = size * (1 - self.border_size) * 0.5
-        painter.drawEllipse(QPointF(0,0), body_size, body_size)
+        painter.drawEllipse(QPointF(0,0), self.body_width/2, self.body_height/2)
 
     @property
     def radius(self):
@@ -86,6 +94,22 @@ class Eye(QWidget):
     @property
     def body_radius(self):
         return self.radius * (1 - self.border_size)
+
+    @property
+    def eye_width(self):
+        return min(self.width(), self.height()*self.whRatio)
+
+    @property
+    def eye_height(self):
+        return min(self.width()/self.whRatio, self.height())
+
+    @property
+    def body_width(self):
+        return self.eye_width * (1-self.border_size)
+
+    @property
+    def body_height(self):
+        return self.eye_height * (1-self.border_size)
 
     @staticmethod
     def cart2pol(x, y):
@@ -111,9 +135,17 @@ class Eye(QWidget):
         self.watch_direction = (horizontal, vertical)
         mag, angle = self.cart2pol(horizontal, vertical)
         mag = np.clip(mag, 0, 1)                            # Limit the magnitude to max 1
-        mag *= (self.body_radius - self.iris.radius)   # Max value for mag is so the edge of iris hits edge of eye
+        a = self.body_width/2
+        b = self.body_height/2
+        mag *= (a*b)/np.sqrt((b*np.cos(angle))**2 + (a*np.sin(angle))**2)
         x, y = self.pol2cart(mag, angle)
+        mag, angle = self.cart2pol(x,y)
+        mag -= self.iris.radius
+        x,y = self.pol2cart(mag, angle)
+        # mag *= (self.body_radius - self.iris.radius)   # Max value for mag is so the edge of iris hits edge of eye
 
+        # x *= self.body_width/2 - self.iris.radius
+        # y *= self.body_height/2 - self.iris.radius
         x += (self.width() / 2) - self.iris.radius         # Position of top-left corner of iris
         y += (self.height() / 2) - self.iris.radius
 
@@ -196,7 +228,15 @@ if __name__ == "__main__":
         while True:
             x, y = (np.random.rand() * 2 - 1 for _ in range(2))
             main_widget.set_watch_direction(x, y)
+            main_widget.set_watch_direction(1,1)
             time.sleep(2)
+
+    def rotate_pupil():
+        while True:
+            for i in np.linspace(0,2*np.pi,1000):
+                x, y = Eye.pol2cart(1,i)
+                main_widget.set_watch_direction(x,y)
+                time.sleep(0.1)
 
     def vary_size():
         def remap(x, inlow, inhigh, outlow, outhigh):
@@ -212,7 +252,7 @@ if __name__ == "__main__":
     main_widget.setCursor(Qt.BlankCursor)
     main_widget.show()
 
-    tp = threading.Thread(target=move_pupil, daemon=True)
+    tp = threading.Thread(target=rotate_pupil, daemon=True)
     ts = threading.Thread(target=vary_size, daemon=True)
     tp.start()
     ts.start()
