@@ -10,13 +10,16 @@ from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLa
 class Eyes(QWidget):
     onClose = pyqtSignal()
 
-    def __init__(self):
+    def __init__(self, fullscreen=True):
         super().__init__()
         self.main_layout = QHBoxLayout(self)
         self.eyes = [Eye() for _ in range(2)]
         for eye in self.eyes:
             self.main_layout.addWidget(eye)
         self.grabKeyboard()
+        self.setCursor(Qt.BlankCursor)
+        if fullscreen:
+            self.showFullScreen()
 
     def set_watch_direction(self, x, y):
         for eye in self.eyes:
@@ -207,9 +210,7 @@ if __name__ == "__main__":
             time.sleep(2)
 
     main_widget = Eyes()
-    main_widget.showFullScreen()
-    main_widget.setFixedSize(app.primaryScreen().size())
-    main_widget.setCursor(Qt.BlankCursor)
+    # main_widget.setFixedSize(app.primaryScreen().size())
     main_widget.show()
 
     tp = threading.Thread(target=move_pupil, daemon=True)
