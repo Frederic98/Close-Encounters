@@ -24,7 +24,7 @@ class Eyes(QWidget):
         # self.eyes[0].set_watch_direction(x,y)
         # self.eyes[1].set_watch_direction(-1*x,y)
 
-    def change_pupil_size(self, size: float):
+    def set_pupil_size(self, size: float):
         for eye in self.eyes:
             eye.set_pupil_size(size)
 
@@ -203,7 +203,7 @@ if __name__ == "__main__":
             return ((x-inlow) / (inhigh-inlow)) * (outhigh - outlow) + outlow
         while True:
             s = np.random.rand()
-            main_widget.change_pupil_size(remap(s, 0,1, 0.3,0.9))
+            main_widget.set_pupil_size(remap(s, 0, 1, 0.3, 0.9))
             time.sleep(2)
 
     main_widget = Eyes()
